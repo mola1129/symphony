@@ -61,7 +61,7 @@ mise trust
 mise install
 mise exec -- mix setup
 mise exec -- mix build
-mise exec -- ./bin/symphony ./WORKFLOW.md --i-understand-that-this-will-be-running-without-the-usual-guardrails
+mise exec -- ./bin/symphony ./WORKFLOW.md --port 4000 --i-understand-that-this-will-be-running-without-the-usual-guardrails
 ```
 
 ## Configuration
