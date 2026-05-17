@@ -1102,6 +1102,36 @@ defmodule SymphonyElixir.WorkspaceAndConfigTest do
              "excludeTmpdirEnvVar" => false,
              "excludeSlashTmp" => false
            }
+
+    assert Schema.resolve_turn_sandbox_policy(%Schema{
+             codex: %Codex{turn_sandbox_policy: %{"type" => "readOnly", "networkAccess" => true}},
+             workspace: %Schema.Workspace{root: "/tmp/ignored"}
+           }) == %{"type" => "readOnly", "networkAccess" => true}
+
+    assert Schema.resolve_turn_sandbox_policy(
+             %Schema{
+               codex: %Codex{turn_sandbox_policy: %{"type" => "workspaceWrite", "writableRoots" => []}},
+               workspace: %Schema.Workspace{root: "/tmp/ignored"}
+             },
+             "/tmp/workspace"
+           ) == %{
+             "type" => "workspaceWrite",
+             "writableRoots" => [Path.expand("/tmp/workspace"), Path.join(Path.expand("/tmp/workspace"), ".git")],
+             "readOnlyAccess" => %{"type" => "fullAccess"},
+             "networkAccess" => false,
+             "excludeTmpdirEnvVar" => false,
+             "excludeSlashTmp" => false
+           }
+
+    assert Schema.resolve_turn_sandbox_policy(
+             %Schema{
+               codex: %Codex{
+                 turn_sandbox_policy: %{"type" => "workspaceWrite", "writableRoots" => ["/tmp/explicit"]}
+               },
+               workspace: %Schema.Workspace{root: "/tmp/ignored"}
+             },
+             "/tmp/workspace"
+           ) == %{"type" => "workspaceWrite", "writableRoots" => ["/tmp/explicit"]}
   end
 
   test "schema keeps workspace roots raw while sandbox helpers expand only for local use" do
@@ -1181,6 +1211,26 @@ defmodule SymphonyElixir.WorkspaceAndConfigTest do
                "type" => "futureSandbox",
                "nested" => %{"flag" => true}
              }
+
+      assert {:ok, defaulted_runtime_policy} =
+               Config.Schema.resolve_runtime_turn_sandbox_policy(
+                 %Schema{
+                   workspace: %Schema.Workspace{root: ""},
+                   codex: %Codex{turn_sandbox_policy: %{"type" => "workspaceWrite", "writableRoots" => []}}
+                 },
+                 issue_workspace
+               )
+
+      assert defaulted_runtime_policy["writableRoots"] == [issue_workspace, Path.join(issue_workspace, ".git")]
+
+      assert {:error, {:unsafe_turn_sandbox_policy, {:invalid_workspace_root, 123}}} =
+               Config.Schema.resolve_runtime_turn_sandbox_policy(
+                 %Schema{
+                   workspace: %Schema.Workspace{root: ""},
+                   codex: %Codex{turn_sandbox_policy: %{"type" => "workspaceWrite", "writableRoots" => []}}
+                 },
+                 123
+               )
     after
       File.rm_rf(test_root)
     end
