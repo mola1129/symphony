@@ -61,6 +61,7 @@ defmodule SymphonyElixir.Codex.DynamicToolTest do
     assert_received {:linear_client_called, "query Viewer { viewer { id } }", %{"includeTeams" => false}, []}
 
     assert response["success"] == true
+    assert response["output"] == ~s({"data":{"viewer":{"id":"usr_123"}}})
     assert Jason.decode!(response["output"]) == %{"data" => %{"viewer" => %{"id" => "usr_123"}}}
     assert response["contentItems"] == [%{"type" => "inputText", "text" => response["output"]}]
   end
