@@ -517,7 +517,6 @@ defmodule SymphonyElixir.Config.Schema do
 
   defp merge_workspace_write_policy(default_policy, policy) do
     Map.merge(default_policy, policy, fn
-      "writableRoots", _default_roots, roots when is_list(roots) and roots != [] -> roots
       "writableRoots", default_roots, _roots -> default_roots
       _key, _default_value, policy_value -> policy_value
     end)
