@@ -16,7 +16,7 @@ tracker:
 polling:
   interval_ms: 5000
 workspace:
-  root: ~/code/symphony-workspaces
+  root: $SYMPHONY_WORKSPACE_ROOT
 hooks:
   after_create: |
     git clone --depth 1 https://github.com/mola1129/symphony .
