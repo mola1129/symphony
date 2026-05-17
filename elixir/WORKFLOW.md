@@ -82,7 +82,13 @@ The agent should be able to talk to Linear, either via a configured Linear MCP s
 - Keep ticket metadata current (state, checklist, acceptance criteria, links).
 - Treat a single persistent Linear comment as the source of truth for progress.
 - Use that single workpad comment for all progress and handoff notes; do not post separate "done"/summary comments.
-- Treat any ticket-authored `Validation`, `Test Plan`, or `Testing` section as non-negotiable acceptance input: mirror it in the workpad and execute it before considering the work complete.
+- Write all human-facing Linear content in Japanese. This includes workpad prose,
+  checklist items, blocker briefs, follow-up issue titles/descriptions,
+  acceptance criteria, validation notes, and handoff notes.
+- Keep required machine/search markers and external proper nouns unchanged
+  (`## Codex Workpad`, issue states, branch names, commands, PR URLs, and API
+  field names). Everything around those markers should be Japanese.
+- Treat any ticket-authored `Validation`, `Test Plan`, or `Testing` section as non-negotiable acceptance input: translate or summarize it in the Japanese workpad and execute it before considering the work complete.
 - When meaningful out-of-scope improvements are discovered during execution,
   file a separate Linear issue instead of expanding scope. The follow-up issue
   must include a clear title, description, and acceptance criteria, be placed in
@@ -146,7 +152,7 @@ The agent should be able to talk to Linear, either via a configured Linear MCP s
 3.  Immediately reconcile the workpad before new edits:
     - Check off items that are already done.
     - Expand/fix the plan so it is comprehensive for current scope.
-    - Ensure `Acceptance Criteria` and `Validation` are current and still make sense for the task.
+    - Ensure acceptance criteria and validation notes are current and still make sense for the task.
 4.  Start work by writing/updating a hierarchical plan in the workpad comment.
 5.  Ensure the workpad includes a compact environment stamp at the top as a code fence line:
     - Format: `<host>:<abs-workdir>@<short-sha>`
@@ -154,12 +160,12 @@ The agent should be able to talk to Linear, either via a configured Linear MCP s
     - Do not include metadata already inferable from Linear issue fields (`issue ID`, `status`, `branch`, `PR link`).
 6.  Add explicit acceptance criteria and TODOs in checklist form in the same comment.
     - If changes are user-facing, include a UI walkthrough acceptance criterion that describes the end-to-end user path to validate.
-    - If changes touch app files or app behavior, add explicit app-specific flow checks to `Acceptance Criteria` in the workpad (for example: launch path, changed interaction path, and expected result path).
-    - If the ticket description/comment context includes `Validation`, `Test Plan`, or `Testing` sections, copy those requirements into the workpad `Acceptance Criteria` and `Validation` sections as required checkboxes (no optional downgrade).
+    - If changes touch app files or app behavior, add explicit app-specific flow checks to the acceptance criteria in the workpad (for example: launch path, changed interaction path, and expected result path).
+    - If the ticket description/comment context includes `Validation`, `Test Plan`, or `Testing` sections, translate or summarize those requirements into Japanese workpad acceptance criteria and validation sections as required checkboxes (no optional downgrade).
 7.  Run a principal-style self-review of the plan and refine it in the comment.
-8.  Before implementing, capture a concrete reproduction signal and record it in the workpad `Notes` section (command/output, screenshot, or deterministic UI behavior).
-9.  Run the `pull` skill to sync with latest `origin/main` before any code edits, then record the pull/sync result in the workpad `Notes`.
-    - Include a `pull skill evidence` note with:
+8.  Before implementing, capture a concrete reproduction signal and record it in the workpad `メモ` section (command/output, screenshot, or deterministic UI behavior).
+9.  Run the `pull` skill to sync with latest `origin/main` before any code edits, then record the pull/sync result in the workpad `メモ` section.
+    - Include a Japanese `pull skill evidence` note with:
       - merge source(s),
       - result (`clean` or `conflicts resolved`),
       - resulting `HEAD` short SHA.
@@ -211,7 +217,7 @@ Use this only when completion is blocked by missing required tools or missing au
     - Prefer a targeted proof that directly demonstrates the behavior you changed.
     - You may make temporary local proof edits to validate assumptions (for example: tweak a local build input for `make`, or hardcode a UI account / response path) when this increases confidence.
     - Revert every temporary proof edit before commit/push.
-    - Document these temporary proof steps and outcomes in the workpad `Validation`/`Notes` sections so reviewers can follow the evidence.
+    - Document these temporary proof steps and outcomes in the workpad `検証`/`メモ` sections so reviewers can follow the evidence.
     - If app-touching, run `launch-app` validation and capture/upload media via `github-pr-media` before handoff.
 6.  Re-check all acceptance criteria and close any gaps.
 7.  Before every `git push` attempt, run the required validation for your scope and confirm it passes; if it fails, address issues and rerun until green, then commit and push changes.
@@ -222,7 +228,7 @@ Use this only when completion is blocked by missing required tools or missing au
     - Mark completed plan/acceptance/validation checklist items as checked.
     - Add final handoff notes (commit + validation summary) in the same workpad comment.
     - Do not include PR URL in the workpad comment; keep PR linkage on the issue via attachment/link fields.
-    - Add a short `### Confusions` section at the bottom when any part of task execution was unclear/confusing, with concise bullets.
+    - Add a short Japanese confusion section at the bottom when any part of task execution was unclear/confusing, with concise bullets.
     - Do not post any additional completion summary comment.
 11. Before moving to `Human Review`, poll PR feedback and checks:
     - Read the PR `Manual QA Plan` comment (when present) and use it to sharpen UI/runtime test coverage for the current change.
@@ -230,7 +236,7 @@ Use this only when completion is blocked by missing required tools or missing au
     - Confirm PR checks are passing (green) after the latest changes.
     - Confirm every required ticket-provided validation/test-plan item is explicitly marked complete in the workpad.
     - Repeat this check-address-verify loop until no outstanding comments remain and checks are fully passing.
-    - Re-open and refresh the workpad before state transition so `Plan`, `Acceptance Criteria`, and `Validation` exactly match completed work.
+    - Re-open and refresh the workpad before state transition so plan, acceptance criteria, and validation exactly match completed work.
 12. Only then move issue to `Human Review`.
     - Exception: if blocked by missing required non-GitHub tools/auth per the blocked-access escape hatch, move to `Human Review` with the blocker brief and explicit unblock actions.
 13. For `Todo` tickets that already had a PR attached at kickoff:
@@ -288,10 +294,15 @@ Use this only when completion is blocked by missing required tools or missing au
 - If state is terminal (`Done`), do nothing and shut down.
 - Keep issue text concise, specific, and reviewer-oriented.
 - If blocked and no workpad exists yet, add one blocker comment describing blocker, impact, and next unblock action.
+- Keep Linear text polite but compact in Japanese. Prefer concrete evidence and
+  completed facts over conversational status updates.
 
 ## Workpad template
 
-Use this exact structure for the persistent workpad comment and keep it updated in place throughout execution:
+Use this exact structure for the persistent workpad comment and keep it updated
+in place throughout execution. The `## Codex Workpad` marker must stay exactly
+as written for lookup, but the rest of the visible workpad text should be
+Japanese:
 
 ````md
 ## Codex Workpad
@@ -300,27 +311,27 @@ Use this exact structure for the persistent workpad comment and keep it updated 
 <hostname>:<abs-path>@<short-sha>
 ```
 
-### Plan
+### 計画
 
-- [ ] 1\. Parent task
-  - [ ] 1.1 Child task
-  - [ ] 1.2 Child task
-- [ ] 2\. Parent task
+- [ ] 1\. 親タスク
+  - [ ] 1.1 子タスク
+  - [ ] 1.2 子タスク
+- [ ] 2\. 親タスク
 
-### Acceptance Criteria
+### 受け入れ条件
 
-- [ ] Criterion 1
-- [ ] Criterion 2
+- [ ] 条件 1
+- [ ] 条件 2
 
-### Validation
+### 検証
 
-- [ ] targeted tests: `<command>`
+- [ ] 対象テスト: `<command>`
 
-### Notes
+### メモ
 
-- <short progress note with timestamp>
+- <タイムスタンプ付きの短い進捗メモ>
 
-### Confusions
+### 不明点
 
-- <only include when something was confusing during execution>
+- <実行中に迷った点がある場合のみ記載>
 ````

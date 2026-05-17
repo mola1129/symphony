@@ -14,6 +14,18 @@ Use this skill for raw Linear GraphQL work during Symphony app-server sessions.
 Use the `linear_graphql` client tool exposed by Symphony's app-server session.
 It reuses Symphony's configured Linear auth for the session.
 
+## Language policy
+
+For Symphony issue work, write human-facing Linear content in Japanese by
+default. This includes comment bodies, workpad updates, blocker notes,
+follow-up issue titles/descriptions, acceptance criteria, validation notes, and
+handoff notes.
+
+Keep API names, GraphQL field names, issue states, commands, branch names, PR
+URLs, and stable lookup markers such as `## Codex Workpad` unchanged. Translate
+or summarize English ticket-provided validation requirements into Japanese
+without weakening them.
+
 Tool input:
 
 ```json
@@ -377,6 +389,8 @@ mutation FileUpload(
 
 - Use `linear_graphql` for comment edits, uploads, and ad-hoc Linear API
   queries.
+- Write any new human-facing Linear text in Japanese unless the user or target
+  ticket explicitly requires another language.
 - Prefer the narrowest issue lookup that matches what you already know:
   key -> identifier search -> internal id.
 - For state transitions, fetch team states first and use the exact `stateId`
