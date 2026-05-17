@@ -13,7 +13,7 @@ This directory contains the current Elixir/OTP implementation of Symphony, based
 
 ## How it works
 
-1. Polls Linear for candidate work
+1. Polls GitHub Projects or Linear for candidate work
 2. Creates a workspace per issue
 3. Launches Codex in [App Server mode](https://developers.openai.com/codex/app-server/) inside the
    workspace
@@ -30,15 +30,16 @@ Symphony stops the active agent for that issue and cleans up matching workspaces
 
 1. Make sure your codebase is set up to work well with agents: see
    [Harness engineering](https://openai.com/index/harness-engineering/).
-2. Get a new personal token in Linear via Settings → Security & access → Personal API keys, and
-   set it as the `LINEAR_API_KEY` environment variable.
+2. Create a GitHub token that can read and edit Projects v2 and issues, then set it as the
+   `GITHUB_TOKEN` environment variable. For Linear-backed workflows, set `LINEAR_API_KEY` instead.
 3. Copy this directory's `WORKFLOW.md` to your repo.
 4. Optionally copy the `commit`, `push`, `pull`, `land`, and `linear` skills to your repo.
    - The `linear` skill expects Symphony's `linear_graphql` app-server tool for raw Linear GraphQL
      operations such as comment editing or upload flows.
 5. Customize the copied `WORKFLOW.md` file for your project.
-   - To get your project's slug, right-click the project and copy its URL. The slug is part of the
-     URL.
+   - For GitHub Projects, set `tracker.project_owner` to the user or organization that owns the
+     project and `tracker.project_number` to the Projects v2 number from the project URL.
+   - For Linear, set `tracker.project_slug`; the slug is part of the project URL.
    - When creating a workflow based on this repo, note that it depends on non-standard Linear
      issue statuses: "Rework", "Human Review", and "Merging". You can customize them in
      Team Settings → Workflow in Linear.
@@ -87,8 +88,11 @@ Minimal example:
 ```md
 ---
 tracker:
-  kind: linear
-  project_slug: "..."
+  kind: github_projects
+  api_key: $GITHUB_TOKEN
+  project_owner: "your-org"
+  project_number: 1
+  active_states: ["Todo", "In Progress", "Merging", "Rework"]
 workspace:
   root: ~/code/workspaces
 hooks:
@@ -101,7 +105,7 @@ codex:
   command: codex app-server
 ---
 
-You are working on a Linear issue {{ issue.identifier }}.
+You are working on a GitHub issue {{ issue.identifier }}.
 
 Title: {{ issue.title }} Body: {{ issue.description }}
 ```
@@ -128,7 +132,8 @@ Notes:
   `git clone ... .` there, along with any other setup commands you need.
 - If a hook needs `mise exec` inside a freshly cloned workspace, trust the repo config and fetch
   the project dependencies in `hooks.after_create` before invoking `mise` later from other hooks.
-- `tracker.api_key` reads from `LINEAR_API_KEY` when unset or when value is `$LINEAR_API_KEY`.
+- `tracker.api_key` reads from `GITHUB_TOKEN` or `GH_TOKEN` for `github_projects`; it reads from
+  `LINEAR_API_KEY` for `linear`.
 - For path values, `~` is expanded to the home directory.
 - For env-backed path values, use `$VAR`. `workspace.root` resolves `$VAR` before path handling,
   while `codex.command` stays a shell command string and any `$VAR` expansion there happens in the
@@ -136,7 +141,10 @@ Notes:
 
 ```yaml
 tracker:
-  api_key: $LINEAR_API_KEY
+  kind: github_projects
+  api_key: $GITHUB_TOKEN
+  project_owner: "your-org"
+  project_number: 1
 workspace:
   root: $SYMPHONY_WORKSPACE_ROOT
 hooks:

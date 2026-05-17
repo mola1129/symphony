@@ -4,6 +4,7 @@ defmodule SymphonyElixir.ExtensionsTest do
   import Phoenix.ConnTest
   import Phoenix.LiveViewTest
 
+  alias SymphonyElixir.GitHubProjects
   alias SymphonyElixir.Linear.Adapter
   alias SymphonyElixir.Tracker.Memory
 
@@ -36,6 +37,33 @@ defmodule SymphonyElixir.ExtensionsTest do
         _ ->
           Process.get({__MODULE__, :graphql_result})
       end
+    end
+  end
+
+  defmodule FakeGitHubProjectsClient do
+    def fetch_candidate_issues do
+      send(self(), :github_fetch_candidate_issues_called)
+      {:ok, [:github_candidate]}
+    end
+
+    def fetch_issues_by_states(states) do
+      send(self(), {:github_fetch_issues_by_states_called, states})
+      {:ok, states}
+    end
+
+    def fetch_issue_states_by_ids(issue_ids) do
+      send(self(), {:github_fetch_issue_states_by_ids_called, issue_ids})
+      {:ok, issue_ids}
+    end
+
+    def create_comment(issue_id, body) do
+      send(self(), {:github_create_comment_called, issue_id, body})
+      :ok
+    end
+
+    def update_issue_state(issue_id, state_name) do
+      send(self(), {:github_update_issue_state_called, issue_id, state_name})
+      :ok
     end
   end
 
@@ -79,12 +107,19 @@ defmodule SymphonyElixir.ExtensionsTest do
 
   setup do
     linear_client_module = Application.get_env(:symphony_elixir, :linear_client_module)
+    github_projects_client_module = Application.get_env(:symphony_elixir, :github_projects_client_module)
 
     on_exit(fn ->
       if is_nil(linear_client_module) do
         Application.delete_env(:symphony_elixir, :linear_client_module)
       else
         Application.put_env(:symphony_elixir, :linear_client_module, linear_client_module)
+      end
+
+      if is_nil(github_projects_client_module) do
+        Application.delete_env(:symphony_elixir, :github_projects_client_module)
+      else
+        Application.put_env(:symphony_elixir, :github_projects_client_module, github_projects_client_module)
       end
     end)
 
@@ -203,6 +238,28 @@ defmodule SymphonyElixir.ExtensionsTest do
 
     write_workflow_file!(Workflow.workflow_file_path(), tracker_kind: "linear")
     assert SymphonyElixir.Tracker.adapter() == Adapter
+
+    Application.put_env(:symphony_elixir, :github_projects_client_module, FakeGitHubProjectsClient)
+
+    write_workflow_file!(Workflow.workflow_file_path(),
+      tracker_kind: "github_projects",
+      tracker_endpoint: "https://api.github.com/graphql",
+      tracker_project_slug: nil,
+      tracker_project_owner: "mola1129",
+      tracker_project_number: 1
+    )
+
+    assert SymphonyElixir.Tracker.adapter() == GitHubProjects.Adapter
+    assert {:ok, [:github_candidate]} = SymphonyElixir.Tracker.fetch_candidate_issues()
+    assert {:ok, ["Todo"]} = SymphonyElixir.Tracker.fetch_issues_by_states(["Todo"])
+    assert {:ok, ["github-issue-1"]} = SymphonyElixir.Tracker.fetch_issue_states_by_ids(["github-issue-1"])
+    assert :ok = SymphonyElixir.Tracker.create_comment("github-issue-1", "comment")
+    assert :ok = SymphonyElixir.Tracker.update_issue_state("github-issue-1", "Done")
+    assert_receive :github_fetch_candidate_issues_called
+    assert_receive {:github_fetch_issues_by_states_called, ["Todo"]}
+    assert_receive {:github_fetch_issue_states_by_ids_called, ["github-issue-1"]}
+    assert_receive {:github_create_comment_called, "github-issue-1", "comment"}
+    assert_receive {:github_update_issue_state_called, "github-issue-1", "Done"}
   end
 
   test "linear adapter delegates reads and validates mutation responses" do

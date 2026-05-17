@@ -371,6 +371,45 @@ defmodule SymphonyElixir.WorkspaceAndConfigTest do
     refute issue.assigned_to_worker
   end
 
+  test "github projects client normalizes project items into issues" do
+    project_item = %{
+      "id" => "item-1",
+      "content" => %{
+        "id" => "github-issue-1",
+        "number" => 13,
+        "title" => "Migrate tracker",
+        "body" => "Use GitHub Projects",
+        "url" => "https://github.com/mola1129/symphony/issues/13",
+        "state" => "OPEN",
+        "repository" => %{"nameWithOwner" => "mola1129/symphony"},
+        "assignees" => %{"nodes" => [%{"login" => "mola1129"}]},
+        "labels" => %{"nodes" => [%{"name" => "Backend"}]},
+        "createdAt" => "2026-01-01T00:00:00Z",
+        "updatedAt" => "2026-01-02T00:00:00Z"
+      },
+      "fieldValues" => %{
+        "nodes" => [
+          %{
+            "name" => "In Progress",
+            "field" => %{"name" => "Status"}
+          }
+        ]
+      }
+    }
+
+    issue = SymphonyElixir.GitHubProjects.Client.normalize_project_item_for_test(project_item)
+
+    assert issue.id == "github-issue-1"
+    assert issue.identifier == "mola1129/symphony#13"
+    assert issue.project_item_id == "item-1"
+    assert issue.title == "Migrate tracker"
+    assert issue.description == "Use GitHub Projects"
+    assert issue.state == "In Progress"
+    assert issue.assignee_id == "mola1129"
+    assert issue.labels == ["backend"]
+    assert issue.assigned_to_worker
+  end
+
   test "linear client pagination merge helper preserves issue ordering" do
     issue_page_1 = [
       %Issue{id: "issue-1", identifier: "MT-1"},

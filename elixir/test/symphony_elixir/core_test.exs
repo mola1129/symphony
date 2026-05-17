@@ -86,6 +86,50 @@ defmodule SymphonyElixir.CoreTest do
 
     write_workflow_file!(Workflow.workflow_file_path(), tracker_kind: "123")
     assert {:error, {:unsupported_tracker_kind, "123"}} = Config.validate!()
+
+    write_workflow_file!(Workflow.workflow_file_path(),
+      tracker_kind: "github_projects",
+      tracker_endpoint: "https://api.github.com/graphql",
+      tracker_api_token: nil,
+      tracker_project_slug: nil,
+      tracker_project_owner: nil,
+      tracker_project_number: nil
+    )
+
+    assert {:error, :missing_github_api_token} = Config.validate!()
+
+    write_workflow_file!(Workflow.workflow_file_path(),
+      tracker_kind: "github_projects",
+      tracker_endpoint: "https://api.github.com/graphql",
+      tracker_api_token: "github-token",
+      tracker_project_slug: nil,
+      tracker_project_owner: nil,
+      tracker_project_number: nil
+    )
+
+    assert {:error, :missing_github_project_owner} = Config.validate!()
+
+    write_workflow_file!(Workflow.workflow_file_path(),
+      tracker_kind: "github_projects",
+      tracker_endpoint: "https://api.github.com/graphql",
+      tracker_api_token: "github-token",
+      tracker_project_slug: nil,
+      tracker_project_owner: "mola1129",
+      tracker_project_number: nil
+    )
+
+    assert {:error, :missing_github_project_number} = Config.validate!()
+
+    write_workflow_file!(Workflow.workflow_file_path(),
+      tracker_kind: "github_projects",
+      tracker_api_token: "github-token",
+      tracker_project_slug: nil,
+      tracker_project_owner: "mola1129",
+      tracker_project_number: 1
+    )
+
+    assert :ok = Config.validate!()
+    assert Config.settings!().tracker.endpoint == "https://api.github.com/graphql"
   end
 
   test "current WORKFLOW.md file is valid and complete" do
@@ -98,8 +142,10 @@ defmodule SymphonyElixir.CoreTest do
 
     tracker = Map.get(config, "tracker", %{})
     assert is_map(tracker)
-    assert Map.get(tracker, "kind") == "linear"
-    assert is_binary(Map.get(tracker, "project_slug"))
+    assert Map.get(tracker, "kind") == "github_projects"
+    assert Map.get(tracker, "api_key") == "$GITHUB_TOKEN"
+    assert is_binary(Map.get(tracker, "project_owner"))
+    assert is_integer(Map.get(tracker, "project_number"))
     assert is_list(Map.get(tracker, "active_states"))
     assert is_list(Map.get(tracker, "terminal_states"))
 
@@ -134,6 +180,33 @@ defmodule SymphonyElixir.CoreTest do
 
     assert Config.settings!().tracker.api_key == env_api_key
     assert Config.settings!().tracker.project_slug == "project"
+    assert :ok = Config.validate!()
+  end
+
+  test "github projects api token resolves from GitHub environment variables" do
+    previous_github_token = System.get_env("GITHUB_TOKEN")
+    previous_gh_token = System.get_env("GH_TOKEN")
+
+    on_exit(fn ->
+      restore_env("GITHUB_TOKEN", previous_github_token)
+      restore_env("GH_TOKEN", previous_gh_token)
+    end)
+
+    System.delete_env("GITHUB_TOKEN")
+    System.put_env("GH_TOKEN", "fallback-github-token")
+
+    write_workflow_file!(Workflow.workflow_file_path(),
+      tracker_kind: "github_projects",
+      tracker_api_token: nil,
+      tracker_project_slug: nil,
+      tracker_project_owner: "mola1129",
+      tracker_project_number: 1,
+      codex_command: "/bin/sh app-server"
+    )
+
+    assert Config.settings!().tracker.api_key == "fallback-github-token"
+    assert Config.settings!().tracker.project_owner == "mola1129"
+    assert Config.settings!().tracker.project_number == 1
     assert :ok = Config.validate!()
   end
 

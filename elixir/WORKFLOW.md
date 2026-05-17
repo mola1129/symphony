@@ -1,7 +1,9 @@
 ---
 tracker:
-  kind: linear
-  project_slug: "symphony-test-b5c307d26c04"
+  kind: github_projects
+  api_key: $GITHUB_TOKEN
+  project_owner: "mola1129"
+  project_number: 1
   active_states:
     - Todo
     - In Progress

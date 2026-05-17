@@ -115,23 +115,30 @@ defmodule SymphonyElixir.Config do
   end
 
   defp validate_semantics(settings) do
+    validate_tracker_semantics(settings.tracker)
+  end
+
+  defp validate_tracker_semantics(%{kind: nil}), do: {:error, :missing_tracker_kind}
+
+  defp validate_tracker_semantics(%{kind: "linear"} = tracker) do
     cond do
-      is_nil(settings.tracker.kind) ->
-        {:error, :missing_tracker_kind}
-
-      settings.tracker.kind not in ["linear", "memory"] ->
-        {:error, {:unsupported_tracker_kind, settings.tracker.kind}}
-
-      settings.tracker.kind == "linear" and not is_binary(settings.tracker.api_key) ->
-        {:error, :missing_linear_api_token}
-
-      settings.tracker.kind == "linear" and not is_binary(settings.tracker.project_slug) ->
-        {:error, :missing_linear_project_slug}
-
-      true ->
-        :ok
+      not is_binary(tracker.api_key) -> {:error, :missing_linear_api_token}
+      not is_binary(tracker.project_slug) -> {:error, :missing_linear_project_slug}
+      true -> :ok
     end
   end
+
+  defp validate_tracker_semantics(%{kind: "github_projects"} = tracker) do
+    cond do
+      not is_binary(tracker.api_key) -> {:error, :missing_github_api_token}
+      not is_binary(tracker.project_owner) -> {:error, :missing_github_project_owner}
+      not is_integer(tracker.project_number) -> {:error, :missing_github_project_number}
+      true -> :ok
+    end
+  end
+
+  defp validate_tracker_semantics(%{kind: "memory"}), do: :ok
+  defp validate_tracker_semantics(%{kind: kind}), do: {:error, {:unsupported_tracker_kind, kind}}
 
   defp format_config_error(reason) do
     case reason do
