@@ -103,6 +103,10 @@ defmodule SymphonyElixir.CoreTest do
     assert is_list(Map.get(tracker, "active_states"))
     assert is_list(Map.get(tracker, "terminal_states"))
 
+    codex = Map.get(config, "codex", %{})
+    assert is_map(codex)
+    assert get_in(codex, ["turn_sandbox_policy", "networkAccess"]) == true
+
     hooks = Map.get(config, "hooks", %{})
     assert is_map(hooks)
     assert Map.get(hooks, "after_create") =~ "git clone --depth 1 https://github.com/mola1129/symphony ."
