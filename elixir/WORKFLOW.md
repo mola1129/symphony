@@ -19,7 +19,8 @@ workspace:
   root: $SYMPHONY_WORKSPACE_ROOT
 hooks:
   after_create: |
-    git clone --depth 1 https://github.com/mola1129/symphony .
+    SOURCE_REPO_URL="${SOURCE_REPO_URL:-https://github.com/mola1129/symphony}"
+    git clone --depth 1 "$SOURCE_REPO_URL" .
     if command -v mise >/dev/null 2>&1; then
       cd elixir && mise trust && mise exec -- mix deps.get
     fi

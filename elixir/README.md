@@ -133,6 +133,8 @@ Notes:
 - For env-backed path values, use `$VAR`. `workspace.root` resolves `$VAR` before path handling,
   while `codex.command` stays a shell command string and any `$VAR` expansion there happens in the
   launched shell.
+- The bundled `WORKFLOW.md` reads `SOURCE_REPO_URL` in `hooks.after_create` and falls back to
+  `https://github.com/mola1129/symphony` when the variable is unset.
 
 ```yaml
 tracker:
@@ -141,6 +143,7 @@ workspace:
   root: $SYMPHONY_WORKSPACE_ROOT
 hooks:
   after_create: |
+    SOURCE_REPO_URL="${SOURCE_REPO_URL:-https://github.com/your-org/your-repo}"
     git clone --depth 1 "$SOURCE_REPO_URL" .
 codex:
   command: "$CODEX_BIN --config 'model=\"gpt-5.5\"' app-server"
