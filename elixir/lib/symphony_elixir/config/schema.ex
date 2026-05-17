@@ -292,6 +292,13 @@ defmodule SymphonyElixir.Config.Schema do
   @spec resolve_turn_sandbox_policy(%__MODULE__{}, Path.t() | nil) :: map()
   def resolve_turn_sandbox_policy(settings, workspace \\ nil) do
     case settings.codex.turn_sandbox_policy do
+      %{"type" => "workspaceWrite"} = policy ->
+        workspace
+        |> default_workspace_root(settings.workspace.root)
+        |> expand_local_workspace_root()
+        |> default_turn_sandbox_policy()
+        |> merge_workspace_write_policy(policy)
+
       %{} = policy ->
         policy
 
@@ -307,6 +314,18 @@ defmodule SymphonyElixir.Config.Schema do
           {:ok, map()} | {:error, term()}
   def resolve_runtime_turn_sandbox_policy(settings, workspace \\ nil, opts \\ []) do
     case settings.codex.turn_sandbox_policy do
+      %{"type" => "workspaceWrite"} = policy ->
+        workspace
+        |> default_workspace_root(settings.workspace.root)
+        |> default_runtime_turn_sandbox_policy(opts)
+        |> case do
+          {:ok, default_policy} ->
+            {:ok, merge_workspace_write_policy(default_policy, policy)}
+
+          {:error, reason} ->
+            {:error, reason}
+        end
+
       %{} = policy ->
         {:ok, policy}
 
@@ -482,12 +501,24 @@ defmodule SymphonyElixir.Config.Schema do
   defp default_turn_sandbox_policy(workspace) do
     %{
       "type" => "workspaceWrite",
-      "writableRoots" => [workspace],
+      "writableRoots" => workspace_write_roots(workspace),
       "readOnlyAccess" => %{"type" => "fullAccess"},
       "networkAccess" => false,
       "excludeTmpdirEnvVar" => false,
       "excludeSlashTmp" => false
     }
+  end
+
+  defp merge_workspace_write_policy(default_policy, policy) do
+    Map.merge(default_policy, policy, fn
+      "writableRoots", default_roots, roots when is_list(roots) and roots != [] -> roots
+      "writableRoots", default_roots, _roots -> default_roots
+      _key, _default_value, policy_value -> policy_value
+    end)
+  end
+
+  defp workspace_write_roots(workspace) when is_binary(workspace) do
+    [workspace, Path.join(workspace, ".git")]
   end
 
   defp default_runtime_turn_sandbox_policy(workspace_root, opts) when is_binary(workspace_root) do
