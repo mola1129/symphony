@@ -292,6 +292,9 @@ defmodule SymphonyElixir.Config.Schema do
   @spec resolve_turn_sandbox_policy(%__MODULE__{}, Path.t() | nil) :: map()
   def resolve_turn_sandbox_policy(settings, workspace \\ nil) do
     case settings.codex.turn_sandbox_policy do
+      %{"type" => "workspaceWrite", "writableRoots" => roots} = policy when is_list(roots) and roots != [] ->
+        policy
+
       %{"type" => "workspaceWrite"} = policy ->
         workspace
         |> default_workspace_root(settings.workspace.root)
@@ -314,6 +317,9 @@ defmodule SymphonyElixir.Config.Schema do
           {:ok, map()} | {:error, term()}
   def resolve_runtime_turn_sandbox_policy(settings, workspace \\ nil, opts \\ []) do
     case settings.codex.turn_sandbox_policy do
+      %{"type" => "workspaceWrite", "writableRoots" => roots} = policy when is_list(roots) and roots != [] ->
+        {:ok, policy}
+
       %{"type" => "workspaceWrite"} = policy ->
         workspace
         |> default_workspace_root(settings.workspace.root)
@@ -511,7 +517,7 @@ defmodule SymphonyElixir.Config.Schema do
 
   defp merge_workspace_write_policy(default_policy, policy) do
     Map.merge(default_policy, policy, fn
-      "writableRoots", default_roots, roots when is_list(roots) and roots != [] -> roots
+      "writableRoots", _default_roots, roots when is_list(roots) and roots != [] -> roots
       "writableRoots", default_roots, _roots -> default_roots
       _key, _default_value, policy_value -> policy_value
     end)
