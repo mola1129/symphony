@@ -786,6 +786,40 @@ defmodule SymphonyElixir.CoreTest do
     assert prompt =~ "attempt=3"
   end
 
+  test "prompt builder preserves Japanese workflow and issue text as valid UTF-8" do
+    workflow_prompt = """
+    チケット `{{ issue.identifier }}` に対応してください
+
+    タイトル: {{ issue.title }}
+    説明:
+    {{ issue.description }}
+
+    ### 受け入れ条件
+    - [ ] 条件 1
+    - [ ] 条件 2
+    """
+
+    write_workflow_file!(Workflow.workflow_file_path(), prompt: workflow_prompt)
+
+    issue = %Issue{
+      identifier: "MOL-7",
+      title: "Symphonyが単独動作するために必要な書き込み権限を持てるようにする",
+      description: "特にリポジトリルートの.gitフォルダなど",
+      state: "Todo",
+      url: "https://example.org/issues/MOL-7",
+      labels: []
+    }
+
+    prompt = PromptBuilder.build_prompt(issue)
+
+    assert String.valid?(prompt)
+    assert prompt =~ "チケット `MOL-7` に対応してください"
+    assert prompt =~ "タイトル: Symphonyが単独動作するために必要な書き込み権限を持てるようにする"
+    assert prompt =~ "特にリポジトリルートの.gitフォルダなど"
+    assert prompt =~ "### 受け入れ条件"
+    assert Jason.encode!(%{"text" => prompt}) =~ "MOL-7"
+  end
+
   test "prompt builder renders issue datetime fields without crashing" do
     workflow_prompt = "Ticket {{ issue.identifier }} created={{ issue.created_at }} updated={{ issue.updated_at }}"
 
@@ -959,6 +993,8 @@ defmodule SymphonyElixir.CoreTest do
 
     prompt = PromptBuilder.build_prompt(issue, attempt: 2)
 
+    assert String.valid?(prompt)
+    assert Jason.encode!(%{"text" => prompt}) =~ "MT-616"
     assert prompt =~ "You are working on a Linear ticket `MT-616`"
     assert prompt =~ "Issue context:"
     assert prompt =~ "Identifier: MT-616"

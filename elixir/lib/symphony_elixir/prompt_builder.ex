@@ -6,7 +6,6 @@ defmodule SymphonyElixir.PromptBuilder do
   alias SymphonyElixir.{Config, Workflow}
 
   @render_opts [strict_variables: true, strict_filters: true]
-
   @spec build_prompt(SymphonyElixir.Linear.Issue.t(), keyword()) :: String.t()
   def build_prompt(issue, opts \\ []) do
     template =
@@ -22,7 +21,7 @@ defmodule SymphonyElixir.PromptBuilder do
       },
       @render_opts
     )
-    |> IO.iodata_to_binary()
+    |> IO.chardata_to_string()
   end
 
   defp prompt_template!({:ok, %{prompt_template: prompt}}), do: default_prompt(prompt)
