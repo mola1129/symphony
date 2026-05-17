@@ -404,6 +404,7 @@ defmodule SymphonyElixir.ExtensionsTest do
                %{
                  "issue_id" => "issue-http",
                  "issue_identifier" => "MT-HTTP",
+                 "issue_url" => "https://linear.app/acme/issue/MT-HTTP/example-issue",
                  "state" => "In Progress",
                  "worker_host" => nil,
                  "workspace_path" => nil,
@@ -454,6 +455,7 @@ defmodule SymphonyElixir.ExtensionsTest do
                "session_id" => "thread-http",
                "turn_count" => 7,
                "state" => "In Progress",
+               "issue_url" => "https://linear.app/acme/issue/MT-HTTP/example-issue",
                "started_at" => issue_payload["running"]["started_at"],
                "last_event" => "notification",
                "last_message" => "rendered",
@@ -598,6 +600,7 @@ defmodule SymphonyElixir.ExtensionsTest do
     {:ok, view, html} = live(build_conn(), "/")
     assert html =~ "Operations Dashboard"
     assert html =~ "MT-HTTP"
+    assert html =~ ~s(href="https://linear.app/acme/issue/MT-HTTP/example-issue")
     assert html =~ "MT-RETRY"
     assert html =~ "rendered"
     assert html =~ "Runtime"
@@ -617,6 +620,7 @@ defmodule SymphonyElixir.ExtensionsTest do
         %{
           issue_id: "issue-http",
           identifier: "MT-HTTP",
+          issue_url: "https://linear.app/acme/issue/MT-HTTP/example-issue",
           state: "In Progress",
           session_id: "thread-http",
           turn_count: 8,
@@ -746,6 +750,7 @@ defmodule SymphonyElixir.ExtensionsTest do
         %{
           issue_id: "issue-http",
           identifier: "MT-HTTP",
+          issue_url: "https://linear.app/acme/issue/MT-HTTP/example-issue",
           state: "In Progress",
           session_id: "thread-http",
           turn_count: 7,

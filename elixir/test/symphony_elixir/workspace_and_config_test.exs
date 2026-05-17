@@ -40,6 +40,44 @@ defmodule SymphonyElixir.WorkspaceAndConfigTest do
     end
   end
 
+  test "workspace bootstrap clone source can be selected with SOURCE_REPO_URL" do
+    test_root =
+      Path.join(
+        System.tmp_dir!(),
+        "symphony-elixir-workspace-source-repo-url-#{System.unique_integer([:positive])}"
+      )
+
+    previous_source_repo_url = System.get_env("SOURCE_REPO_URL")
+    on_exit(fn -> restore_env("SOURCE_REPO_URL", previous_source_repo_url) end)
+
+    try do
+      default_repo = Path.join(test_root, "default-source")
+      custom_repo = Path.join(test_root, "custom-source")
+      workspace_root = Path.join(test_root, "workspaces")
+
+      create_git_repo!(default_repo, "README.md", "default clone\n")
+      create_git_repo!(custom_repo, "README.md", "custom clone\n")
+
+      write_workflow_file!(Workflow.workflow_file_path(),
+        workspace_root: workspace_root,
+        hook_after_create: """
+        SOURCE_REPO_URL="${SOURCE_REPO_URL:-#{default_repo}}"
+        git clone --depth 1 "$SOURCE_REPO_URL" .
+        """
+      )
+
+      System.put_env("SOURCE_REPO_URL", custom_repo)
+      assert {:ok, custom_workspace} = Workspace.create_for_issue("S-ENV")
+      assert File.read!(Path.join(custom_workspace, "README.md")) == "custom clone\n"
+
+      System.delete_env("SOURCE_REPO_URL")
+      assert {:ok, default_workspace} = Workspace.create_for_issue("S-DEFAULT")
+      assert File.read!(Path.join(default_workspace, "README.md")) == "default clone\n"
+    after
+      File.rm_rf(test_root)
+    end
+  end
+
   test "workspace path is deterministic per issue identifier" do
     workspace_root =
       Path.join(
@@ -1412,5 +1450,16 @@ defmodule SymphonyElixir.WorkspaceAndConfigTest do
     after
       File.rm_rf(test_root)
     end
+  end
+
+  defp create_git_repo!(repo_path, file_path, content) do
+    full_file_path = Path.join(repo_path, file_path)
+    File.mkdir_p!(Path.dirname(full_file_path))
+    File.write!(full_file_path, content)
+    System.cmd("git", ["-C", repo_path, "init", "-b", "main"])
+    System.cmd("git", ["-C", repo_path, "config", "user.name", "Test User"])
+    System.cmd("git", ["-C", repo_path, "config", "user.email", "test@example.com"])
+    System.cmd("git", ["-C", repo_path, "add", file_path])
+    System.cmd("git", ["-C", repo_path, "commit", "-m", "initial"])
   end
 end

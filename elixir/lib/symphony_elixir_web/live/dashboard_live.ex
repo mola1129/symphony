@@ -152,7 +152,13 @@ defmodule SymphonyElixirWeb.DashboardLive do
                   <tr :for={entry <- @payload.running}>
                     <td>
                       <div class="issue-stack">
-                        <span class="issue-id"><%= entry.issue_identifier %></span>
+                        <%= if entry.issue_url do %>
+                          <a class="issue-id issue-title-link" href={entry.issue_url}>
+                            <%= entry.issue_identifier %>
+                          </a>
+                        <% else %>
+                          <span class="issue-id"><%= entry.issue_identifier %></span>
+                        <% end %>
                         <a class="issue-link" href={"/api/v1/#{entry.issue_identifier}"}>JSON details</a>
                       </div>
                     </td>
