@@ -26,6 +26,33 @@ skills can make raw Linear GraphQL calls.
 If a claimed issue moves to a terminal state (`Done`, `Closed`, `Cancelled`, or `Duplicate`),
 Symphony stops the active agent for that issue and cleans up matching workspaces.
 
+## PR handoff and Codex GitHub review
+
+The bundled workflow treats Codex GitHub review as an explicit PR handoff step, not as an automatic
+repository-wide review setting. After a Symphony agent creates or updates a PR and pushes the
+latest branch, it posts a top-level PR comment such as:
+
+```text
+@codex review
+```
+
+For focused reviews, the comment can include the requested scope:
+
+```text
+@codex review for docs accuracy and handoff completeness
+```
+
+Before moving the Linear issue to `Human Review`, the agent checks that the Codex review completed
+and sweeps top-level PR comments, inline review comments, and review summaries. Actionable Codex
+findings are handled the same way as other blocking review feedback: the agent must fix the issue,
+post a justified pushback reply, or record a non-action rationale. Any unresolved Codex findings
+remain tracked in the issue workpad and block `Human Review`.
+
+If Codex GitHub review is unavailable or does not respond, the workflow records the attempted
+comment, the observed failure or timeout, and the impact in the workpad. This reference workflow
+does not create a custom GitHub Actions review bot, CLI review runner, or Elixir orchestrator state
+machine for Codex review.
+
 ## How to use it
 
 1. Make sure your codebase is set up to work well with agents: see

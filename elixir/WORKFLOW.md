@@ -189,6 +189,29 @@ When a ticket has an attached PR, run this protocol before moving to `Human Revi
 5. Re-run validation after feedback-driven changes and push updates.
 6. Repeat this sweep until there are no outstanding actionable comments.
 
+## Codex GitHub review handoff protocol (required)
+
+Before moving a ticket with an attached PR to `Human Review`, request Codex GitHub review from the
+PR itself:
+
+1. After creating or updating the PR and pushing the latest branch, post a top-level PR comment with
+   `@codex review`.
+   - When a focused review is useful, include the focus in the same comment, for example:
+     `@codex review for docs accuracy and handoff completeness`.
+2. Do not assume Codex auto-reviews every PR. The explicit PR comment is the handoff trigger.
+3. Confirm the Codex review has completed before moving the issue to `Human Review`.
+   - Gather top-level comments, inline review comments, and review summaries as part of the normal
+     PR feedback sweep.
+   - If Codex GitHub review is unavailable or does not respond, record the attempt, observed
+     failure or timeout, and impact in the workpad before proceeding. Do not build a custom review
+     runner in this workflow.
+4. Treat every actionable Codex review finding as blocking until one of these is true:
+   - code/test/docs updated to address it,
+   - an explicit, justified pushback reply is posted on that thread, or
+   - a non-action reason is recorded in the workpad.
+5. If any Codex review finding remains unresolved, keep the issue out of `Human Review` and track
+   each item and its resolution status in the workpad checklist.
+
 ## Blocked-access escape hatch (required behavior)
 
 Use this only when completion is blocked by missing required tools or missing auth/permissions that cannot be resolved in-session.
@@ -233,8 +256,14 @@ Use this only when completion is blocked by missing required tools or missing au
     - Add a short Japanese confusion section at the bottom when any part of task execution was unclear/confusing, with concise bullets.
     - Do not post any additional completion summary comment.
 11. Before moving to `Human Review`, poll PR feedback and checks:
+    - Post `@codex review` as a top-level PR comment, or a focused variant such as
+      `@codex review for concurrency and failure handling`, after the latest PR update.
+    - Confirm Codex GitHub review completed; if unavailable, document the attempt and fallback
+      status in the workpad.
     - Read the PR `Manual QA Plan` comment (when present) and use it to sharpen UI/runtime test coverage for the current change.
     - Run the full PR feedback sweep protocol.
+    - Add each unresolved Codex review finding to the workpad and resolve it through a fix,
+      justified pushback reply, or recorded non-action rationale before handoff.
     - Confirm PR checks are passing (green) after the latest changes.
     - Confirm every required ticket-provided validation/test-plan item is explicitly marked complete in the workpad.
     - Repeat this check-address-verify loop until no outstanding comments remain and checks are fully passing.
@@ -272,6 +301,10 @@ Use this only when completion is blocked by missing required tools or missing au
 - Step 1/2 checklist is fully complete and accurately reflected in the single workpad comment.
 - Acceptance criteria and required ticket-provided validation items are complete.
 - Validation/tests are green for the latest commit.
+- Codex GitHub review was explicitly requested with a PR comment and completed, or its
+  unavailability/timeout was documented in the workpad.
+- All actionable Codex review findings are resolved by code/test/docs changes, justified pushback,
+  or recorded non-action rationale.
 - PR feedback sweep is complete and no actionable comments remain.
 - PR checks are green, branch is pushed, and PR is linked on the issue.
 - Required PR metadata is present (`symphony` label).
