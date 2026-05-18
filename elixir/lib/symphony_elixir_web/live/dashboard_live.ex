@@ -153,7 +153,12 @@ defmodule SymphonyElixirWeb.DashboardLive do
                     <td>
                       <div class="issue-stack">
                         <%= if entry.issue_url do %>
-                          <a class="issue-id issue-title-link" href={entry.issue_url}>
+                          <a
+                            class="issue-id issue-title-link"
+                            href={entry.issue_url}
+                            rel="noopener noreferrer"
+                            target="_blank"
+                          >
                             <%= entry.issue_identifier %>
                           </a>
                         <% else %>
