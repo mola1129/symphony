@@ -20,3 +20,8 @@
 
 - [ ] `make -C elixir all`
 - [ ] <!-- Additional targeted checks (list below) -->
+
+#### Handoff
+
+- [ ] Posted `@codex review` on this PR, or documented why Codex GitHub review was unavailable
+- [ ] Confirmed Codex review completed and resolved or tracked all actionable findings
