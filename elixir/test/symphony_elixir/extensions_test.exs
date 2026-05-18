@@ -544,6 +544,11 @@ defmodule SymphonyElixir.ExtensionsTest do
     assert html =~ "Operations Dashboard"
     assert html =~ "MT-HTTP"
     assert html =~ ~s(href="https://linear.app/acme/issue/MT-HTTP/example-issue")
+
+    assert html =~
+             ~s(<a class="issue-id issue-title-link" href="https://linear.app/acme/issue/MT-HTTP/example-issue" ) <>
+               ~s(rel="noopener noreferrer" target="_blank">)
+
     assert html =~ "MT-RETRY"
     assert html =~ "rendered"
     assert html =~ "Runtime"
