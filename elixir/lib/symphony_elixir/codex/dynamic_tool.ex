@@ -139,7 +139,7 @@ defmodule SymphonyElixir.Codex.DynamicTool do
   end
 
   defp encode_payload(payload) when is_map(payload) or is_list(payload) do
-    Jason.encode!(payload, pretty: true)
+    Jason.encode!(payload)
   end
 
   defp encode_payload(payload), do: inspect(payload)
