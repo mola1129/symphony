@@ -86,18 +86,28 @@ mise exec -- elixir --version
 cd symphony/elixir
 mise trust
 mise install
-mise exec -- mix setup
-mise exec -- mix build
-mise exec -- ./bin/symphony ./WORKFLOW.md --port 4000 --i-understand-that-this-will-be-running-without-the-usual-guardrails
+mise exec -- make setup run
 ```
+
+`make run` builds `./bin/symphony` and starts it with `./WORKFLOW.md`, the dashboard enabled on
+port `4000`, and the required preview acknowledgement flag.
 
 ## Configuration
 
 Pass a custom workflow file path to `./bin/symphony` when starting the service:
 
 ```bash
-./bin/symphony /path/to/custom/WORKFLOW.md
+./bin/symphony --i-understand-that-this-will-be-running-without-the-usual-guardrails /path/to/custom/WORKFLOW.md
 ```
+
+Or use the Make target:
+
+```bash
+mise exec -- make run WORKFLOW=/path/to/custom/WORKFLOW.md PORT=4001
+```
+
+Set `PORT=` to run without the dashboard, `LOGS_ROOT=/path/to/logs` to change the log directory,
+or `RUN_ARGS="..."` to pass additional CLI flags.
 
 If no path is passed, Symphony defaults to `./WORKFLOW.md`.
 
