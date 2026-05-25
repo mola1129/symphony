@@ -1,9 +1,17 @@
-.PHONY: help all setup deps build fmt fmt-check lint test coverage ci dialyzer e2e
+.PHONY: help all setup deps build run fmt fmt-check lint test coverage ci dialyzer e2e
 
 MIX ?= mix
+WORKFLOW ?= ./WORKFLOW.md
+PORT ?= 4000
+LOGS_ROOT ?=
+RUN_ARGS ?=
+
+ACK_FLAG := --i-understand-that-this-will-be-running-without-the-usual-guardrails
+PORT_ARG = $(if $(PORT),--port $(PORT),)
+LOGS_ROOT_ARG = $(if $(LOGS_ROOT),--logs-root $(LOGS_ROOT),)
 
 help:
-	@echo "Targets: setup, deps, fmt, fmt-check, lint, test, coverage, dialyzer, e2e, ci"
+	@echo "Targets: setup, deps, build, run, fmt, fmt-check, lint, test, coverage, dialyzer, e2e, ci"
 
 setup:
 	$(MIX) setup
@@ -13,6 +21,9 @@ deps:
 
 build:
 	$(MIX) build
+
+run: build
+	./bin/symphony $(ACK_FLAG) $(LOGS_ROOT_ARG) $(PORT_ARG) $(RUN_ARGS) $(WORKFLOW)
 
 fmt:
 	$(MIX) format

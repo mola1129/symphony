@@ -34,6 +34,22 @@ help with the setup:
 > Set up Symphony for my repository based on
 > https://github.com/openai/symphony/blob/main/elixir/README.md
 
+From the repository root, you can start the Elixir implementation with:
+
+```bash
+make setup
+make run
+```
+
+The root `Makefile` runs the Elixir targets from `elixir/` and uses `mise exec` automatically when
+`mise` is available.
+
+After setup, the short command remains:
+
+```bash
+make run
+```
+
 ---
 
 ## License
